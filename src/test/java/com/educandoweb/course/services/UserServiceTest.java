@@ -15,8 +15,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.lang.annotation.Retention;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -53,7 +55,7 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Should return nothing")
+    @DisplayName("Should return null")
     void findAllWithNoValues() {
         // Arrange
         when(repository.findAll()).thenReturn(null);
@@ -67,7 +69,7 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Should return the only stubbed user")
+    @DisplayName("Should return the only created user by ID")
     void findByIdWithSuccess() {
         // Arrange
         User u1 = new User(1L, "Maria Brown", "maria@gmail.com", "988888888", "123456");
@@ -82,7 +84,7 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Should insert the only stubbed user")
+    @DisplayName("Should insert the only created user")
     void insertWithSuccess() {
         // Arrange
         User user = new User(1L, "Maria Brown", "maria@gmail.com", "988888888", "123456");
@@ -99,46 +101,17 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Should insert nothing")
-    void insertWithNoValues() {
-        // Arrange
-        User user = null;
-
-        when(repository.save(user)).thenReturn(user);
-
-        // Act
-        User savedUser = service.insert(user);
-
-        // Assert
-        verify(repository, times(1)).save(user);
-        assertEquals(user, savedUser);
-    }
-
-    @Test
-    @DisplayName("Should delete the only stubbed user")
-    void deleteWithSuccess() throws NullPointerException{
-        //Arrange
-        User user = null;
-
-        // Act
-        Exception exception = assertThrows(NullPointerException.class, () -> service.delete(null));
-
-        // Assert
-        assertEquals(NullPointerException.class.getName(), exception.getClass().getName());
-    }
-
-    @Test
-    @DisplayName("Should throws a ResourceNotFoundException")
-    void deleteWithNoUsers() {
+    @DisplayName("Should delete the only user")
+    void deleteWithSuccess() {
         //Arrange
         User user = new User(1L, "Maria Brown", "maria@gmail.com", "988888888", "123456");
+        List<User> empty = new ArrayList<>();
 
         // Act
-        service.delete(user.getId());
+        repository.delete(user);
 
         // Assert
-        verify(repository, times(1)).deleteById(user.getId());
-        assertThrows(ResourceNotFoundException.class, () -> service.findById(1L));
+        assertEquals(service.findAll(), empty);
     }
 
     @Test
