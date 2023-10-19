@@ -2,23 +2,23 @@ package com.educandoweb.course.services;
 
 import com.educandoweb.course.entities.User;
 import com.educandoweb.course.repositories.UserRepository;
-import org.junit.jupiter.api.Assertions;
+import com.educandoweb.course.services.exceptions.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import java.util.ArrayList;
+import java.lang.annotation.Retention;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @DataJpaTest
@@ -36,8 +36,8 @@ class UserServiceTest {
     }
 
     @Test
-    void findAll() {
-        // Arrange
+    @DisplayName("Should return 2 users")
+    void findAllWithSuccess() {
         // Arrange
         List<User> users = List.of(
                 new User(1L, "Maria Brown", "maria@gmail.com", "988888888", "123456"),
@@ -54,19 +54,24 @@ class UserServiceTest {
         assertEquals(users, usersTest);
     }
 
-    private User createUser(String name, String email, String phone, String password) {
+    @Test
+    @DisplayName("Should return nothing")
+    void findAllWithNoValues() {
         // Arrange
-        User newUser = new User(null, name, email, phone, password);
+
+        when(repository.findAll()).thenReturn(null);
 
         // Act
-        this.service.insert(newUser);
+        List<User> usersTest = service.findAll();
 
         // Assert
-        return newUser;
+        verify(repository, times(1)).findAll();
+        assertNull(usersTest);
     }
 
     @Test
-    void findById() {
+    @DisplayName("Should return the only stubbed user")
+    void findByIdWithSuccess() {
         // Arrange
         User u1 = new User(1L, "Maria Brown", "maria@gmail.com", "988888888", "123456");
 
@@ -80,7 +85,24 @@ class UserServiceTest {
     }
 
     @Test
-    void insert() {
+    @DisplayName("Should return null")
+    void findByIdWithNoValues() {
+        // Arrange
+        Optional<User> u1 = Optional.empty();
+
+        // Act
+        when(repository.findById(null)).thenReturn(null);
+        Optional<User> u2 = this.repository.findById(null);
+
+        // Assert
+        verify(repository, times(1)).findById(null);
+        assertThrows(NullPointerException.class, () -> service.findById(null));
+    }
+
+
+    @Test
+    @DisplayName("Should insert the only stubbed user")
+    void insertWithSuccess() {
         // Arrange
         User user = new User(1L, "Maria Brown", "maria@gmail.com", "988888888", "123456");
         User userInserted = new User(1L, "Maria Brown", "maria@gmail.com", "988888888", "123456");
@@ -96,33 +118,91 @@ class UserServiceTest {
     }
 
     @Test
-    void delete() {
+    @DisplayName("Should insert nothing")
+    void insertWithNoValues() {
+        // Arrange
+        User user = null;
+
+        when(repository.save(user)).thenReturn(user);
+
+        // Act
+        User savedUser = service.insert(user);
+
+        // Assert
+        verify(repository, times(1)).save(user);
+        assertEquals(user, savedUser);
+    }
+
+    @Test
+    @DisplayName("Should delete the only stubbed user")
+    void deleteWithSuccess() {
         //Arrange
-        User user = new User(null, "Maria Brown", "maria@gmail.com", "988888888", "123456");
+        User user = new User(1L, "Maria Brown", "maria@gmail.com", "988888888", "123456");
 
         // Act
         service.delete(user.getId());
 
         // Assert
         verify(repository, times(1)).deleteById(user.getId());
+        assertThrows(ResourceNotFoundException.class, () -> service.findById(1L));
     }
 
     @Test
-    void update() {
+    @DisplayName("Should delete the only stubbed user")
+    void deleteWithNoValues() throws NullPointerException{
+        //Arrange
+        User user = null;
+
+        // Act
+        Exception exception = assertThrows(NullPointerException.class, () -> service.delete(null));
+
+        // Assert
+        assertEquals(NullPointerException.class.getName(), exception.getClass().getName());
+    }
+
+    @Test
+    @DisplayName("Should throw a ResourceNotFoundException when deleting inexistent user")
+    void deleteInexistentUser() {
+        // Arrange
+        doThrow(ResourceNotFoundException.class).when(repository).deleteById(1L);
+
+        // Act and Assert
+        assertThrows(ResourceNotFoundException.class, () -> service.delete(1L));
+    }
+
+    @Test
+    @DisplayName("Should update the only stubbed user")
+    void updateWithSuccess() {
         // Arrange
         User userToUpdate = new User(1L, "Maria Brown", "maria@gmail.com", "988888888", "123456");
         User updatedUser = new User(1L, "Maria Green", "maria@gmail.com", "988888888", "123456");
 
-        when(repository.findById(1L)).thenReturn(Optional.of(userToUpdate));
+        when(repository.getReferenceById(userToUpdate.getId())).thenReturn(userToUpdate);
         when(repository.save(userToUpdate)).thenReturn(updatedUser);
-        when(service.update(1L, updatedUser)).thenReturn(updatedUser);
 
         // Act
         User userTest = service.update(1L, updatedUser);
 
         // Assert
-        verify(repository, times(1)).findById(1L);
-        verify(repository, times(1)).save(userToUpdate);
+        verify(repository, times(1)).getReferenceById(1L);
+        verify(repository, times(1)).save(updatedUser);
         assertEquals(updatedUser, userTest);
+    }
+
+    @Test
+    @DisplayName("Should return null exception")
+    void updatePassingNull() {
+        // Arrange
+        User userToUpdate = new User(1L, "Maria Brown", "maria@gmail.com", "988888888", "123456");
+        User updatedUser = null;
+
+        when(repository.getReferenceById(userToUpdate.getId())).thenReturn(userToUpdate);
+        when(repository.save(userToUpdate)).thenReturn(updatedUser);
+
+        // Act;
+        // Assert
+        assertThrowsExactly(NullPointerException.class, () -> {
+            User userTest = service.update(1L, updatedUser);
+        });
     }
 }
