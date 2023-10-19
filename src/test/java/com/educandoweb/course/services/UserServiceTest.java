@@ -56,7 +56,6 @@ class UserServiceTest {
     @DisplayName("Should return nothing")
     void findAllWithNoValues() {
         // Arrange
-
         when(repository.findAll()).thenReturn(null);
 
         // Act
@@ -97,7 +96,6 @@ class UserServiceTest {
         assertThrows(NullPointerException.class, () -> service.findById(null));
     }
 
-
     @Test
     @DisplayName("Should insert the only stubbed user")
     void insertWithSuccess() {
@@ -133,7 +131,20 @@ class UserServiceTest {
 
     @Test
     @DisplayName("Should delete the only stubbed user")
-    void deleteWithSuccess() {
+    void deleteWithSuccess() throws NullPointerException{
+        //Arrange
+        User user = null;
+
+        // Act
+        Exception exception = assertThrows(NullPointerException.class, () -> service.delete(null));
+
+        // Assert
+        assertEquals(NullPointerException.class.getName(), exception.getClass().getName());
+    }
+
+    @Test
+    @DisplayName("Should throws a ResourceNotFoundException")
+    void deleteWithNoUsers() {
         //Arrange
         User user = new User(1L, "Maria Brown", "maria@gmail.com", "988888888", "123456");
 
@@ -143,19 +154,6 @@ class UserServiceTest {
         // Assert
         verify(repository, times(1)).deleteById(user.getId());
         assertThrows(ResourceNotFoundException.class, () -> service.findById(1L));
-    }
-
-    @Test
-    @DisplayName("Should delete the only stubbed user")
-    void deleteWithNoValues() throws NullPointerException{
-        //Arrange
-        User user = null;
-
-        // Act
-        Exception exception = assertThrows(NullPointerException.class, () -> service.delete(null));
-
-        // Assert
-        assertEquals(NullPointerException.class.getName(), exception.getClass().getName());
     }
 
     @Test
