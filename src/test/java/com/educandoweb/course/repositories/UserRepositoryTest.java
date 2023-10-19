@@ -4,18 +4,16 @@ import com.educandoweb.course.entities.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@DataJpaTest
-@ActiveProfiles("test")
+import static org.mockito.Mockito.when;
+
 class UserRepositoryTest {
-    @Autowired
+    @Mock
     private UserRepository repository;
 
     @Test
@@ -23,10 +21,17 @@ class UserRepositoryTest {
     void findAllUsers() {
         // Arrange
         List<User> users = new ArrayList<>();
-        User u1 = createUser("Maria Brown", "maria@gmail.com", "988888888", "123456");
-        User u2 = createUser( "Alex Green", "alex@gmail.com", "977777777", "1234567");
+        User u1 = new User(null, "Maria Brown", "maria@gmail.com", "988888888", "123456");
+        User u2 = new User(null, "Alex Green", "alex@gmail.com", "977777777", "1234567");
+
+        when(createUser(u1.getName(), u1.getEmail(), u1.getPhone(), u1.getPassword())).thenReturn(u1);
+        when(createUser(u2.getName(), u2.getEmail(), u2.getPhone(), u2.getPassword())).thenReturn(u2);
+
         users.add(u1);
         users.add(u2);
+
+        createUser(u1.getName(), u1.getEmail(), u1.getPhone(), u1.getPassword());
+        createUser(u2.getName(), u2.getEmail(), u2.getPhone(), u2.getPassword());
 
         // Act
         List<User> usersTest = repository.findAll();

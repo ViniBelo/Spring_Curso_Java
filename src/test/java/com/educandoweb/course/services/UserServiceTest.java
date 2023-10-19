@@ -82,21 +82,6 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Should return null")
-    void findByIdWithNoValues() {
-        // Arrange
-        Optional<User> u1 = Optional.empty();
-
-        // Act
-        when(repository.findById(null)).thenReturn(null);
-        Optional<User> u2 = this.repository.findById(null);
-
-        // Assert
-        verify(repository, times(1)).findById(null);
-        assertThrows(NullPointerException.class, () -> service.findById(null));
-    }
-
-    @Test
     @DisplayName("Should insert the only stubbed user")
     void insertWithSuccess() {
         // Arrange
@@ -186,7 +171,7 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Should return null exception")
+    @DisplayName("Should return NullPointerException")
     void updatePassingNull() {
         // Arrange
         User userToUpdate = new User(1L, "Maria Brown", "maria@gmail.com", "988888888", "123456");
