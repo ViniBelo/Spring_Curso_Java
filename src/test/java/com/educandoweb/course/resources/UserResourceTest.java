@@ -86,6 +86,7 @@ class UserResourceTest {
     }
 
     @Test
+    @DisplayName("Should delete user with matching ID")
     void delete() {
         // Arrange
         var user1 = new User(null, "Maria Brown", "maria@gmail.com", "999999999", "123456");
@@ -110,8 +111,8 @@ class UserResourceTest {
 
     @Test
     @Transactional
+    @DisplayName("Should return user with matching ID")
     void update() {
-        repository.deleteAll();
         // Arrange
         var user1 = new User(null, "James Greer", "jim@gmail.com", "999999998", "12345");
         var user1_2 = new User(null, "James Brown", "james@gmail.com", "999999998", "12345");

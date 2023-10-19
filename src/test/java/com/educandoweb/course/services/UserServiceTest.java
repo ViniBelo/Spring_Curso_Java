@@ -21,8 +21,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@DataJpaTest
-@ActiveProfiles("test")
 class UserServiceTest {
     @Mock
     private UserRepository repository;
